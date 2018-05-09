@@ -1,7 +1,10 @@
+from Network import *
 
+training_data, \
+    validation_data, \
+    test_data = mnist_loader.load_data_wrapper()
 
-def test():
-    print "This is a test"
+sizes = [784, 30, 10]
+net = Network([784, 30, 10])
 
-
-test()
+net.sgd(training_data, 30, 10, 3.0, test_data=test_data)
