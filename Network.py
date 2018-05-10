@@ -1,6 +1,5 @@
 import random
 import numpy as np
-import mnist_loader
 
 
 class Network(object):
@@ -9,8 +8,7 @@ class Network(object):
         self.num_layers = len(sizes)
         self.sizes = sizes
         self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
-        self.weights = [np.random.randn(y, x)
-                        for x, y in zip(sizes[:-1], sizes[1:])]
+        self.weights = [np.random.randn(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
 
     def feed_forward(self, a):
         """Return the output of the network if "a" is input."""
@@ -78,6 +76,35 @@ def sigmoid(z):
     e_x = np.exp(z - np.max(z))
     return e_x / e_x.sum()
     # return 1.0 / (1.0 + np.exp(-z))
+
+
+def softmax(X):
+    exps = np.exp(X - np.max(X))
+    return exps / np.sum(exps)
+
+
+def cross_entropy(X, y):
+    """
+    X is the output from fully connected layer (num_examples x num_classes)
+    y is labels (num_examples x 1)
+    """
+    m = y.shape[0]
+    p = softmax(X)
+    log_likelihood = -np.log(p[range(m), y])
+    loss = np.sum(log_likelihood) / m
+    return loss
+
+
+def delta_cross_entropy(X,y):
+    """
+    X is the output from fully connected layer (num_examples x num_classes)
+    y is labels (num_examples x 1)
+    """
+    m = y.shape[0]
+    grad = softmax(X)
+    grad[range(m),y] -= 1
+    grad = grad/m
+    return grad
 
 
 def sigmoid_prime(z):
