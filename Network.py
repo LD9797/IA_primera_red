@@ -14,7 +14,8 @@ class Network(object):
     def feed_forward(self, a):
         """Return the output of the network if "a" is input."""
         for b, w in zip(self.biases, self.weights):
-            a = sigmoid(np.dot(w, a) + b)
+            #a = sigmoid(np.dot(w, a) + b)
+            a = ReLU(np.dot(w, a) + b)
         return a
 
     def sgd(self, training_data, epochs, mini_batch_size, eta, test_data=None):
@@ -61,9 +62,9 @@ class Network(object):
             z = np.dot(w, activation) + b
             zs.append(z)
             # activation = sigmoid(z)
-            activation = softmax(z)
+            activation = ReLU(z)
             activations.append(activation)
-        primera_derivada = softmax_grad(zs[-1])
+        primera_derivada = dReLU(zs[-1])
         # primera_derivada = sigmoid_prime(zs[-1])
         costo = delta_cross_entropy(activations[-1], y)
         delta = costo * primera_derivada
@@ -72,7 +73,7 @@ class Network(object):
         for l in xrange(2, self.num_layers):
             z = zs[-l]
             # sp = sigmoid_prime(z)
-            sp = softmax_grad(z)
+            sp = dReLU(z)
             delta = np.dot(self.weights[-l + 1].transpose(), delta) * sp
             nabla_b[-l] = delta
             nabla_w[-l] = np.dot(delta, activations[-l - 1].transpose())
@@ -84,34 +85,21 @@ class Network(object):
         return sum(int(x == y) for (x, y) in test_results)
 
 
-def mul_line_line(a, b):
-    pass
-
-
 def sigmoid(z):
     return 1.0 / (1.0 + np.exp(-z))
+
+
+def ReLU(x):
+    return x * (x > 0)
+
+
+def dReLU(x):
+    return 1. * (x > 0)
 
 
 def softmax(X):
     exps = np.exp(X - np.max(X))
     return exps / np.sum(exps)
-
-
-def softmax_grad(softmax):
-    s = softmax.reshape(-1, 1)
-    trans = np.dot(s, s.T)
-    diag = np.diagflat(s)
-    sol = diag - trans
-
-    diag2 = np.diag(sol)
-
-    return convert_np_np(diag2)
-
-    #diag2.setflags(write=1)
-    #for x in range(len(diag2)):
-    #    diag2[x] = np.array([diag2[x]])
-    #return diag
-    #return np.diagflat(s) - np.dot(s, s.T)
 
 
 def cross_entropy(X, y):
@@ -133,7 +121,8 @@ def delta_cross_entropy(X, y):
     """
     m = y.shape[0]
     grad = softmax(X)
-    grad[range(m), range(y.shape[1])] -= 1
+    grad[np.argmax(y)] -= 1
+    # grad[range(m), range(y.shape[1])] -= 1
    # grad[range(m), y] -= 1
     grad = grad/m
     return grad
