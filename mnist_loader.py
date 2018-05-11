@@ -4,7 +4,7 @@ import numpy as np
 
 
 def load_data():
-    """Carga los datos de mnist y devuelve una tuplca conteniendo los
+    """Carga los datos de mnist y devuelve una tupla conteniendo los
     datos de entrenamiento, validacion y test"""
     mnist_file = gzip.open('mnist.pkl.gz', 'rb')
     training_data, validation_data, test_data = cPickle.load(mnist_file)

@@ -37,4 +37,4 @@ def see_picture(color):
 
 
 see_picture(0)
-see_picture(1)
+

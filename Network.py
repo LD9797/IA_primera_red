@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from test_np import convert_np_np
 
 
 class Network(object):
@@ -23,6 +24,8 @@ class Network(object):
         for j in xrange(epochs):
             random.shuffle(training_data)  #  mini batches de 10 imagenes
             mini_batches = [training_data[k:k + mini_batch_size] for k in xrange(0, n, mini_batch_size)]
+            # Quitarle el mini_batch pasado al training data y el training data se va reduciendo
+            # 1250 batches de 32 imagenes para probar 40 mil imagenes
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
@@ -37,10 +40,14 @@ class Network(object):
             delta_nabla_b, delta_nabla_w = self.backprop(x, y)
             test = zip(nabla_b, delta_nabla_b)
             testa = zip(nabla_w, delta_nabla_w)
-            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)] # SUMA TODOg
+            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]  # SUMA TODO
             nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
         self.weights = [w - (eta / len(mini_batch)) * nw for w, nw in zip(self.weights, nabla_w)]
         self.biases = [b - (eta / len(mini_batch)) * nb for b, nb in zip(self.biases, nabla_b)]
+
+# Recomendado mini batches 32
+# Epoches 6
+
 
     #  X es la imagen
     #  Y es el tag
@@ -53,14 +60,19 @@ class Network(object):
         for b, w in zip(self.biases, self.weights):  # agarra los biases de la 1 hidden y de la ultima layer despues
             z = np.dot(w, activation) + b
             zs.append(z)
-            activation = sigmoid(z)
+            # activation = sigmoid(z)
+            activation = softmax(z)
             activations.append(activation)
-        delta = cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
+        primera_derivada = softmax_grad(zs[-1])
+        # primera_derivada = sigmoid_prime(zs[-1])
+        costo = delta_cross_entropy(activations[-1], y)
+        delta = costo * primera_derivada
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
         for l in xrange(2, self.num_layers):
             z = zs[-l]
-            sp = sigmoid_prime(z)
+            # sp = sigmoid_prime(z)
+            sp = softmax_grad(z)
             delta = np.dot(self.weights[-l + 1].transpose(), delta) * sp
             nabla_b[-l] = delta
             nabla_w[-l] = np.dot(delta, activations[-l - 1].transpose())
@@ -72,15 +84,34 @@ class Network(object):
         return sum(int(x == y) for (x, y) in test_results)
 
 
+def mul_line_line(a, b):
+    pass
+
+
 def sigmoid(z):
-    e_x = np.exp(z - np.max(z))
-    return e_x / e_x.sum()
-    # return 1.0 / (1.0 + np.exp(-z))
+    return 1.0 / (1.0 + np.exp(-z))
 
 
 def softmax(X):
     exps = np.exp(X - np.max(X))
     return exps / np.sum(exps)
+
+
+def softmax_grad(softmax):
+    s = softmax.reshape(-1, 1)
+    trans = np.dot(s, s.T)
+    diag = np.diagflat(s)
+    sol = diag - trans
+
+    diag2 = np.diag(sol)
+
+    return convert_np_np(diag2)
+
+    #diag2.setflags(write=1)
+    #for x in range(len(diag2)):
+    #    diag2[x] = np.array([diag2[x]])
+    #return diag
+    #return np.diagflat(s) - np.dot(s, s.T)
 
 
 def cross_entropy(X, y):
@@ -95,14 +126,15 @@ def cross_entropy(X, y):
     return loss
 
 
-def delta_cross_entropy(X,y):
+def delta_cross_entropy(X, y):
     """
     X is the output from fully connected layer (num_examples x num_classes)
     y is labels (num_examples x 1)
     """
     m = y.shape[0]
     grad = softmax(X)
-    grad[range(m),y] -= 1
+    grad[range(m), range(y.shape[1])] -= 1
+   # grad[range(m), y] -= 1
     grad = grad/m
     return grad
 
@@ -113,7 +145,7 @@ def sigmoid_prime(z):
 
 
 def cost_derivative(output_activations, y):
-    return output_activations - y
+    return 2 * (output_activations - y)
 
 
 #training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
