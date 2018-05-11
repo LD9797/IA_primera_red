@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 
 def sigmoid(z):
@@ -49,6 +50,13 @@ def sigmoid_prime(z):
     return sigmoid(z)*(1-sigmoid(z))
 
 
-def cost_derivative(output_activations, y):
+def delta_mse(output_activations, y):
     return 2 * (output_activations - y)
 
+
+def regular_batches(params):
+    training_data = params[0]
+    mini_batch_size = params[1]
+    random.shuffle(training_data)
+    n = len(training_data)
+    return [training_data[k:k + mini_batch_size] for k in xrange(0, n, mini_batch_size)]
