@@ -45,9 +45,8 @@ class Network(object):
         if self.type_mini_batch == 0:
             return functions.regular_batches(self.params_mini_batch)
 
-    def run_network(self, training_data, epochs, learning_rate, test_data):
+    def run_network(self, epochs, learning_rate, test_data):
         n_test = len(test_data)
-        n = len(training_data)
         for epoc in xrange(epochs):
             mini_batches = self.mini_batch_creator()
             # Quitarle el mini_batch pasado al training data y el training data se va reduciendo
@@ -74,7 +73,7 @@ class Network(object):
 
     def forward(self, x):
         """X es la imagen"""
-        no_function_results = []
+        no_function_results = []  # First step
         activations = [x]
         z = np.dot(self.weights[0], x) + self.biases[0]
         no_function_results.append(z)
@@ -91,13 +90,21 @@ class Network(object):
         """X es la imagen, Y es el tag"""
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
-        primera_derivada = self.prime_forward_function(no_function_results[-1])
+        if self.type_forward_function == 1:  # Relu - Softmax - Cross
+            primera_derivada = self.prime_forward_function(functions.softmax(activations[-1]))  # no_function_results[-1])
+        elif self.type_forward_function == 0:  # Sigmoid
+            primera_derivada = self.prime_forward_function(no_function_results[-1])  # no_function_results[-1])
+        else:  # Another one
+            primera_derivada = self.prime_forward_function(activations[-1])  # no_function_results[-1])
         costo = self.derivative_cost_function(activations[-1], y)
         delta = costo * primera_derivada
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
         for layer in xrange(2, self.num_layers):
-            z = no_function_results[-layer]
+            if self.type_forward_function == 0:  # Sigmoid
+                z = no_function_results[-layer]
+            else:  # Relu - Sigmoid - Cross or another one
+                z = activations[-layer]  # no_function_results[-layer]
             sp = self.prime_forward_function(z)
             delta = np.dot(self.weights[-layer + 1].transpose(), delta) * sp
             nabla_b[-layer] = delta
@@ -108,6 +115,8 @@ class Network(object):
         """Return the output of the network if "a" is input."""
         for b, w in zip(self.biases, self.weights):
             a = self.forward_function(np.dot(w, a) + b)
+        if self.type_forward_function == 1:  # Relu - Softmax - Cross
+            a = functions.softmax(a)
         return a
 
     def evaluate(self, test_data):
