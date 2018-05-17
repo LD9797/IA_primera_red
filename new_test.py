@@ -5,9 +5,11 @@ training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 
 sizes = [784, 30, 10]
 batch_params = [training_data, 10]
-net = Network(sizes, type_cost_f=1, type_forward_f=1, type_learning_r=1, type_mini_b=0, params_mini_b=batch_params)
 
-print "Por 0.3"
+net = Network(sizes, type_cost_f=0, type_forward_f=0, type_learning_r=1, type_mini_b=0, params_mini_b=batch_params,
+              lmbda=0.002)
+
+print "Por 0.0085"
 print "Batch 10"
 print "1 Hidden de 30"
 print "Sigmoid"
@@ -21,5 +23,5 @@ net.run_network(30, 0.3, test_data)
 #  self.z3 -> z2 * w2 -> normal
 #  o -> sigmoid z3
 
-#  o_delta -> y - o * sigmoidprima(o)
+#  o_delta -> (y - o) * sigmoidprima(o)
 #  z2_error -> o_delta*w2T
