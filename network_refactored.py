@@ -1,5 +1,6 @@
 import numpy as np
 import functions
+import timeit as time
 
 
 class Network(object):
@@ -50,7 +51,9 @@ class Network(object):
         n_test = len(test_data)
         best_eval = 0
         progress = ""
+        start = 0
         for epoc in xrange(epochs):
+            start = time.default_timer()
             mini_batches = self.mini_batch_creator()
             # Quitarle el mini_batch pasado al training data y el training data se va reduciendo
             # 1250 batches de 32 imagenes para probar 40 mil imagenes
@@ -62,6 +65,9 @@ class Network(object):
                 functions.save_weights(self)
                 functions.save_biases(self)
             progress += str(epoc) + "," + str(eval) + "\n"
+            stop = time.default_timer()
+            total_time = (stop - start)
+            print str(total_time) + "s"
             print "Epoch {0}: {1} / {2}".format(epoc, eval, n_test)
         functions.save_progress(self, progress)
 
