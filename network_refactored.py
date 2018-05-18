@@ -4,7 +4,7 @@ import functions
 
 class Network(object):
 
-    def __init__(self, sizes, type_cost_f, type_forward_f, type_learning_r, type_mini_b, params_mini_b, lmbda):
+    def __init__(self, sizes, type_cost_f, type_forward_f, type_learning_r, params_mini_b, lmbda, file_names):
         """type_cost_f = 0 -> MSE, 1 -> Cross entropy
            type_forward_f = 0 -> Sigmoid, 1 -> Relu, 2 -> Softmax
            type_learning_r = 0 -> learning_rate/len(mini_batch), 1 -> normal
@@ -17,9 +17,10 @@ class Network(object):
         self.type_cost_function = type_cost_f
         self.type_forward_function = type_forward_f
         self.type_learning_rate = type_learning_r
-        self.type_mini_batch = type_mini_b
+        self.type_mini_batch = 0
         self.params_mini_batch = params_mini_b
         self.lmbda = lmbda
+        self.file_names = file_names
 
     def derivative_cost_function(self, x, y):
         if self.type_cost_function == 0:
@@ -47,13 +48,22 @@ class Network(object):
 
     def run_network(self, epochs, learning_rate, test_data):
         n_test = len(test_data)
+        best_eval = 0
+        progress = ""
         for epoc in xrange(epochs):
             mini_batches = self.mini_batch_creator()
             # Quitarle el mini_batch pasado al training data y el training data se va reduciendo
             # 1250 batches de 32 imagenes para probar 40 mil imagenes
             for mini_batch in mini_batches:
                 self.run_network_on_mini_batch(mini_batch, learning_rate, len(self.params_mini_batch[0]))
-            print "Epoch {0}: {1} / {2}".format(epoc, self.evaluate(test_data), n_test)
+            eval = self.evaluate(test_data)
+            if eval > best_eval:
+                best_eval = eval
+                functions.save_weights(self)
+                functions.save_biases(self)
+            progress += str(epoc) + "," + str(eval) + "\n"
+            print "Epoch {0}: {1} / {2}".format(epoc, eval, n_test)
+        functions.save_progress(self, progress)
 
     def run_network_on_mini_batch(self, mini_batch, learning_rate, n):
         nabla_b = [np.zeros(b.shape) for b in self.biases]
@@ -84,7 +94,6 @@ class Network(object):
             no_function_results.append(z)
             activation = self.forward_function(z)
             activations.append(activation)
-
         return no_function_results, activations
 
     def backpropagation(self, no_function_results, activations, y):

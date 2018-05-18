@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import pickle
 
 
 def sigmoid(z):
@@ -60,3 +61,20 @@ def regular_batches(params):
     random.shuffle(training_data)
     n = len(training_data)
     return [training_data[k:k + mini_batch_size] for k in xrange(0, n, mini_batch_size)]
+
+
+def save_weights(network):
+    with open(network.file_names[0], 'wb') as f:
+        pickle.dump(network.weights, f)
+
+
+def save_biases(network):
+    with open(network.file_names[1], 'wb') as f:
+        pickle.dump(network.biases, f)
+
+
+def save_progress(network, data):
+    x = open(network.file_names[2], "w")
+    x.write(data)
+    x.close()
+

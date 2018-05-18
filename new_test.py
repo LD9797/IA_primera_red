@@ -3,17 +3,20 @@ import mnist_loader
 
 training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 
-sizes = [784, 30, 10]
-batch_params = [training_data, 10]
+sizes = [784, 512, 256, 10]
+batch_params = [training_data, 32]
+add = "C:\\Users\\User\\Desktop\\Resultados\\"
+tipo = "512-256"
+file_names = [add+"Pesos" + tipo + ".pkl", add+"Biases" + tipo + ".pkl", add+"Progreso" + tipo + ".csv"]
 
-net = Network(sizes, type_cost_f=0, type_forward_f=0, type_learning_r=1, type_mini_b=0, params_mini_b=batch_params,
-              lmbda=0.002)
+net = Network(sizes, type_cost_f=1, type_forward_f=1, type_learning_r=1, params_mini_b=batch_params,
+              lmbda=0.002, file_names=file_names)
 
-print "Por 0.0085"
-print "Batch 10"
-print "1 Hidden de 30"
-print "Sigmoid"
-net.run_network(30, 0.3, test_data)
+print "Por 0.000085"
+print "Batch 32"
+print "2 Hidden de 512, 256"
+print "Relu - Cross"
+net.run_network(10, 0.000085, test_data)
 
 
 #  Creo que no sirve con learning rates altos en cross
